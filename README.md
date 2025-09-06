@@ -58,3 +58,11 @@ jobs:
           echo "Artifact ID: ${{ steps.fetch.outputs.artifact_id }}"
           echo "Version:     ${{ steps.fetch.outputs.version }}"
           echo "Timestamp:   ${{ steps.fetch.outputs.timestamp }}"
+
+🔍 Filtering artifacts by labels: rel=squid-ui,ns=squid-prod (mode=latest)
+Using jq filter: (.labels | index("rel=squid-ui")) and (.labels | index("ns=squid-prod"))
+Found latest artifact:
+   ID: 70fda432-0f45-4d1d-9b29-050af96792ff
+   Version: 2025.09.06.1-cd764ab49a23
+   Timestamp: 2025-09-06T05:30:06.435188112Z
+
