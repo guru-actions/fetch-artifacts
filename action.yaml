@@ -73,18 +73,20 @@ runs:
           echo "No matching artifact found with labels: $LABELS"
           exit 1
         fi
-
+        
         ARTIFACT_ID=$(echo "$MATCH" | awk '{print $1}')
         VERSION=$(echo "$MATCH" | awk '{print $2}')
         TIMESTAMP=$(echo "$MATCH" | awk '{print $3}')
-
+        ARTIFACT_NAME=$(jq -r '.artifacts[] | select('"$FILTER"') | .name' response.json | head -n 1)
+        
         echo "Found latest artifact:"
         echo "   ID: $ARTIFACT_ID"
         echo "   Version: $VERSION"
         echo "   Timestamp: $TIMESTAMP"
-
+        echo "   Name: $ARTIFACT_NAME"
+        
         echo "$ARTIFACT_ID" > "$CLOUDBEES_OUTPUTS/artifact_id"
         echo "$VERSION" > "$CLOUDBEES_OUTPUTS/version"
         echo "$TIMESTAMP" > "$CLOUDBEES_OUTPUTS/timestamp"
-
+        echo "$ARTIFACT_NAME" > "$CLOUDBEES_OUTPUTS/artifact_name"
         exit 0
