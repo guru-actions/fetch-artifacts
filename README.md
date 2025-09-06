@@ -8,10 +8,9 @@ Supports fetching the latest artifact (default) or listing all matching artifact
 This CloudBees custom action queries the CloudBees Component Repository API for artifacts that match a given set of labels. It returns:
 
 ### Currently supports:
-	•	Fetching the latest artifact
-	•	Filtering by labels (e.g. rel=squid-ui,ns=squid-prod)
-	•	Outputs: artifact_id, version, timestamp — for downstream workflow steps
-
+- Fetching the latest artifact  
+- Filtering by labels (e.g. `rel=squid-ui,ns=squid-prod`)  
+- Outputs: `artifact_id`, `version`, `timestamp`, `artifact_name` — for downstream workflow steps
 
 ## Inputs
 
@@ -25,11 +24,12 @@ This CloudBees custom action queries the CloudBees Component Repository API for 
 
 ## Outputs
 
-| Name         | Description                              |
-|--------------|------------------------------------------|
-| `artifact_id`| The ID of the matched artifact           |
-| `version`    | The version of the matched artifact      |
-| `timestamp`  | The published timestamp of the artifact  |
+| Name            | Description                                               |
+|-----------------|-----------------------------------------------------------|
+| `artifact_id`   | The ID of the matched artifact                            |
+| `version`       | The version of the matched artifact                       |
+| `timestamp`     | The published timestamp of the artifact                   |
+| `artifact_name` | The full name of the artifact (e.g. `repo/image`)         |
 
 ## Example Usage
 
@@ -58,16 +58,20 @@ jobs:
 
       - name: Show fetched artifact details
         run: |
-          echo "Artifact ID: ${{ steps.fetch.outputs.artifact_id }}"
-          echo "Version:     ${{ steps.fetch.outputs.version }}"
-          echo "Timestamp:   ${{ steps.fetch.outputs.timestamp }}"
+          echo "Artifact ID:   ${{ steps.fetch.outputs.artifact_id }}"
+          echo "Version:       ${{ steps.fetch.outputs.version }}"
+          echo "Timestamp:     ${{ steps.fetch.outputs.timestamp }}"
+          echo "Artifact Name: ${{ steps.fetch.outputs.artifact_name }}"
 ```
+
 ## Example Output
-```yaml
+
+```text
 Filtering artifacts by labels: rel=squid-ui,ns=squid-prod (mode=latest)
 Using jq filter: (.labels | index("rel=squid-ui")) and (.labels | index("ns=squid-prod"))
 Found latest artifact:
    ID: 70fda432-0f45-4d1d-9b29-050af96792ff
    Version: 2025.09.06.1-cd764ab49a23
    Timestamp: 2025-09-06T05:30:06.435188112Z
+   Name: gururepservice/squid-ui
 ```
