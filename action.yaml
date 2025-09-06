@@ -48,6 +48,10 @@ runs:
         LABELS: ${{ inputs.labels }}
         MODE: ${{ inputs.mode }}
       run: |
+        if [ "$DEBUG" = "true" ]; then
+          echo "🔧 DEBUG ENABLED"
+          set -x
+        fi
         apk add --no-cache jq curl
 
         echo "🔍 Filtering artifacts by labels: $LABELS (mode=$MODE)"
