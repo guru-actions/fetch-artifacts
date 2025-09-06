@@ -22,7 +22,7 @@ inputs:
     required: false
     default: latest
   debug:
-    description: enable verbose debug output
+    description: Enable verbose debug output
     required: false
     default: "false"
 
@@ -49,13 +49,20 @@ runs:
         MODE: ${{ inputs.mode }}
         DEBUG: ${{ inputs.debug }}
       run: |
+        log() {
+          [ "$DEBUG" = "true" ] && echo "$@"
+        }
+
         if [ "$DEBUG" = "true" ]; then
           echo "🔧 DEBUG ENABLED"
           set -x
+          apk add --no-cache jq curl
+        else
+          apk add --no-cache jq curl > /dev/null 2>&1
         fi
-        apk add --no-cache jq curl
 
-        echo "🔍 Filtering artifacts by labels: $LABELS (mode=$MODE)"
+        log "🔍 Filtering artifacts by labels: $LABELS (mode=$MODE)"
+
         curl -s -H "Authorization: Bearer $CB_PAT" \
           "$CB_API_URL/v3/components/$COMPONENT_ID/artifactinfos" > response.json
 
@@ -67,15 +74,14 @@ runs:
             }
           }' | sed 's/ and $//')
 
-        echo "Using jq filter: $FILTER"
+        log "Using jq filter: $FILTER"
 
         if [ "$MODE" = "all" ]; then
-          echo "📦 All matching artifacts:"
+          log "📦 All matching artifacts:"
           jq -r '.artifacts[] | select('"$FILTER"') | "- ID: \(.id)\n  Version: \(.version)\n  Timestamp: \(.publishedOn)"' response.json
           exit 0
         fi
 
-        # Default mode = latest
         MATCH=$(jq -r '.artifacts[] | select('"$FILTER"') | "\(.id) \(.version) \(.publishedOn)"' response.json | head -n 1)
 
         if [ -z "$MATCH" ]; then
@@ -87,10 +93,10 @@ runs:
         VERSION=$(echo "$MATCH" | awk '{print $2}')
         TIMESTAMP=$(echo "$MATCH" | awk '{print $3}')
 
-        echo "✅ Found latest artifact:"
-        echo "   ID: $ARTIFACT_ID"
-        echo "   Version: $VERSION"
-        echo "   Timestamp: $TIMESTAMP"
+        log "✅ Found latest artifact:"
+        log "   ID: $ARTIFACT_ID"
+        log "   Version: $VERSION"
+        log "   Timestamp: $TIMESTAMP"
 
         echo "$ARTIFACT_ID" > "$CLOUDBEES_OUTPUTS/artifact_id"
         echo "$VERSION" > "$CLOUDBEES_OUTPUTS/version"
