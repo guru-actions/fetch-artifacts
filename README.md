@@ -7,8 +7,11 @@ Supports fetching the latest artifact (default) or listing all matching artifact
 
 This CloudBees custom action queries the CloudBees Component Repository API for artifacts that match a given set of labels. It returns:
 
-- The latest matching artifact ID, version, and timestamp (by default)
-- Or, all matching artifacts when `mode: all` is specified
+### Currently supports:
+	•	Fetching the latest artifact
+	•	Filtering by labels (e.g. rel=squid-ui,ns=squid-prod)
+	•	Outputs: artifact_id, version, timestamp — for downstream workflow steps
+
 
 ## Inputs
 
