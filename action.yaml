@@ -47,6 +47,7 @@ runs:
         CB_PAT: ${{ inputs.cb_pat }}
         LABELS: ${{ inputs.labels }}
         MODE: ${{ inputs.mode }}
+        DEBUG: ${{ inputs.debug }}
       run: |
         if [ "$DEBUG" = "true" ]; then
           echo "🔧 DEBUG ENABLED"
