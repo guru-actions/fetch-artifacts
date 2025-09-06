@@ -50,6 +50,7 @@ runs:
         curl -s -H "Authorization: Bearer $CB_PAT" \
           "$CB_API_URL/v3/components/$COMPONENT_ID/artifactinfos" > response.json
 
+        cat response.json
         FILTER=$(echo "$LABELS" | awk -F, '
           {
             for (i = 1; i <= NF; i++) {
@@ -62,7 +63,7 @@ runs:
 
         if [ "$MODE" = "all" ]; then
           echo "📦 All matching artifacts:"
-          jq -r '.artifacts[] | select('"$FILTER"') | "- ID: \(.id)\n  Version: \(.version)\n Name: \(.name)\n  Timestamp: \(.publishedOn)"' response.json
+          jq -r '.artifacts[] | select('"$FILTER"') | "- ID: \(.id)\n  Version: \(.version)\n  Timestamp: \(.publishedOn)"' response.json
           exit 0
         fi
 
