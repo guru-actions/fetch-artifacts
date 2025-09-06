@@ -29,8 +29,6 @@ outputs:
     value: ${{ steps.fetch-artifact.outputs.version }}
   timestamp:
     value: ${{ steps.fetch-artifact.outputs.timestamp }}
-  artifact_name:
-    value: ${{ steps.fetch-artifact.outputs.artifact_name }}
 
 runs:
   using: composite
@@ -81,7 +79,7 @@ runs:
         ARTIFACT_ID=$(echo "$MATCH" | awk '{print $1}')
         VERSION=$(echo "$MATCH" | awk '{print $2}')
         TIMESTAMP=$(echo "$MATCH" | awk '{print $3}')
-        ARTIFACT_NAME=$(echo "$MATCH" | cut -d' ' -f4-)
+        
 
         echo "Found latest artifact:"
         echo "   ID: $ARTIFACT_ID"
@@ -92,4 +90,4 @@ runs:
         echo "$ARTIFACT_ID" > "$CLOUDBEES_OUTPUTS/artifact_id"
         echo "$VERSION" > "$CLOUDBEES_OUTPUTS/version"
         echo "$TIMESTAMP" > "$CLOUDBEES_OUTPUTS/timestamp"
-        echo "$ARTIFACT_NAME" > "$CLOUDBEES_OUTPUTS/artifact_name"
+     
