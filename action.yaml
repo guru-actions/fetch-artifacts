@@ -66,17 +66,16 @@ runs:
           exit 0
         fi
 
-        MATCH=$(jq '.artifacts[] | select('"$FILTER"')' response.json | head -n 1)
-        echo "$MATCH" | jq '.' || echo "⚠️ Failed to parse matched artifact JSON"
-        
+        MATCH=$(jq -r '.artifacts[] | select('"$FILTER"') | "\(.id) \(.version) \(.publishedOn)"' response.json | head -n 1)
+
         if [ -z "$MATCH" ]; then
           echo "No matching artifact found with labels: $LABELS"
           exit 1
         fi
-        
-        ARTIFACT_ID=$(echo "$MATCH" | jq -r '.id')
-        VERSION=$(echo "$MATCH" | jq -r '.version')
-        TIMESTAMP=$(echo "$MATCH" | jq -r '.publishedOn')
+
+        ARTIFACT_ID=$(echo "$MATCH" | awk '{print $1}')
+        VERSION=$(echo "$MATCH" | awk '{print $2}')
+        TIMESTAMP=$(echo "$MATCH" | awk '{print $3}')
 
         echo "Found latest artifact:"
         echo "   ID: $ARTIFACT_ID"
