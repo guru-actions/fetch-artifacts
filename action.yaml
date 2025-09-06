@@ -52,6 +52,9 @@ runs:
         curl -s -H "Authorization: Bearer $CB_PAT" \
           "$CB_API_URL/v3/components/$COMPONENT_ID/artifactinfos" > response.json
 
+        echo "🪵 Raw response preview (first artifact):"
+        jq '.artifacts[0]' response.json || echo "⚠️ Failed to parse response.json or no artifacts returned"
+
         FILTER=$(echo "$LABELS" | awk -F, '
           {
             for (i = 1; i <= NF; i++) {
