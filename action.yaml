@@ -24,11 +24,13 @@ inputs:
 
 outputs:
   artifact_id:
-    description: ID of the matched artifact (only for mode=latest)
+    value: ${{ steps.fetch-artifact.outputs.artifact_id }}
   version:
-    description: Version of the matched artifact (only for mode=latest)
+    value: ${{ steps.fetch-artifact.outputs.version }}
   timestamp:
-    description: Timestamp when the artifact was published (only for mode=latest)
+    value: ${{ steps.fetch-artifact.outputs.timestamp }}
+  artifact_name:
+    value: ${{ steps.fetch-artifact.outputs.artifact_name }}
 
 runs:
   using: composite
@@ -50,7 +52,6 @@ runs:
         curl -s -H "Authorization: Bearer $CB_PAT" \
           "$CB_API_URL/v3/components/$COMPONENT_ID/artifactinfos" > response.json
 
-        cat response.json
         FILTER=$(echo "$LABELS" | awk -F, '
           {
             for (i = 1; i <= NF; i++) {
