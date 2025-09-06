@@ -1,0 +1,88 @@
+---
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: action
+name: fetch-artifacts
+description: Fetches artifact information from the CloudBees Component Repository based on label filters.
+
+inputs:
+  cb_api_url:
+    description: CloudBees API URL (e.g. https://api.cloudbees.io)
+    required: true
+  component_id:
+    description: ID of the Component to query
+    required: true
+  cb_pat:
+    description: CloudBees Personal Access Token
+    required: true
+  labels:
+    description: Comma-separated labels to match (e.g. rel=squid-ui,ns=squid-prod)
+    required: true
+  mode:
+    description: Artifact fetch mode — latest (default) or all
+    required: false
+    default: latest
+
+outputs:
+  artifact_id:
+    description: ID of the matched artifact (only for mode=latest)
+  version:
+    description: Version of the matched artifact (only for mode=latest)
+  timestamp:
+    description: Timestamp when the artifact was published (only for mode=latest)
+
+runs:
+  using: composite
+  steps:
+    - id: fetch-artifact
+      name: Fetch artifact(s) from component repo
+      uses: docker://python:3.11-alpine
+      shell: sh
+      env:
+        CB_API_URL: ${{ inputs.cb_api_url }}
+        COMPONENT_ID: ${{ inputs.component_id }}
+        CB_PAT: ${{ inputs.cb_pat }}
+        LABELS: ${{ inputs.labels }}
+        MODE: ${{ inputs.mode }}
+      run: |
+        apk add --no-cache jq curl
+
+        echo "🔍 Filtering artifacts by labels: $LABELS (mode=$MODE)"
+        curl -s -H "Authorization: Bearer $CB_PAT" \
+          "$CB_API_URL/v3/components/$COMPONENT_ID/artifactinfos" > response.json
+
+        FILTER=$(echo "$LABELS" | awk -F, '
+          {
+            for (i = 1; i <= NF; i++) {
+              split($i, kv, "=")
+              printf "(.labels | index(\"%s=%s\")) and ", kv[1], kv[2]
+            }
+          }' | sed 's/ and $//')
+
+        echo "Using jq filter: $FILTER"
+
+        if [ "$MODE" = "all" ]; then
+          echo "📦 All matching artifacts:"
+          jq -r '.artifacts[] | select('"$FILTER"') | "- ID: \(.id)\n  Version: \(.version)\n  Timestamp: \(.publishedOn)"' response.json
+          exit 0
+        fi
+
+        # Default mode = latest
+        MATCH=$(jq -r '.artifacts[] | select('"$FILTER"') | "\(.id) \(.version) \(.publishedOn)"' response.json | head -n 1)
+
+        if [ -z "$MATCH" ]; then
+          echo "❌ No matching artifact found with labels: $LABELS"
+          exit 1
+        fi
+
+        ARTIFACT_ID=$(echo "$MATCH" | awk '{print $1}')
+        VERSION=$(echo "$MATCH" | awk '{print $2}')
+        TIMESTAMP=$(echo "$MATCH" | awk '{print $3}')
+
+        echo "✅ Found latest artifact:"
+        echo "   ID: $ARTIFACT_ID"
+        echo "   Version: $VERSION"
+        echo "   Timestamp: $TIMESTAMP"
+
+        echo "$ARTIFACT_ID" > "$CLOUDBEES_OUTPUTS/artifact_id"
+        echo "$VERSION" > "$CLOUDBEES_OUTPUTS/version"
+        echo "$TIMESTAMP" > "$CLOUDBEES_OUTPUTS/timestamp"
