@@ -59,7 +59,7 @@ jobs:
           echo "Version:     ${{ steps.fetch.outputs.version }}"
           echo "Timestamp:   ${{ steps.fetch.outputs.timestamp }}"
 ```
-## Example Usage
+## Example Output
 ```yaml
 Filtering artifacts by labels: rel=squid-ui,ns=squid-prod (mode=latest)
 Using jq filter: (.labels | index("rel=squid-ui")) and (.labels | index("ns=squid-prod"))
