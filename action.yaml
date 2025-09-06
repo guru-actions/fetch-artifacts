@@ -22,7 +22,6 @@ inputs:
     required: false
     default: latest
 
-
 outputs:
   artifact_id:
     value: ${{ steps.fetch-artifact.outputs.artifact_id }}
@@ -30,6 +29,8 @@ outputs:
     value: ${{ steps.fetch-artifact.outputs.version }}
   timestamp:
     value: ${{ steps.fetch-artifact.outputs.timestamp }}
+  artifact_name:
+    value: ${{ steps.fetch-artifact.outputs.artifact_name }}
 
 runs:
   using: composite
@@ -62,12 +63,12 @@ runs:
         echo "Using jq filter: $FILTER"
 
         if [ "$MODE" = "all" ]; then
-          echo "📦 All matching artifacts:"
-          jq -r '.artifacts[] | select('"$FILTER"') | "- ID: \(.id)\n  Version: \(.version)\n  Timestamp: \(.publishedOn)"' response.json
+          echo "All matching artifacts:"
+          jq -r '.artifacts[] | select('"$FILTER"') | "- ID: \(.id)\n  Version: \(.version)\n  Timestamp: \(.publishedOn)\n  Name: \(.name)"' response.json
           exit 0
         fi
 
-        MATCH=$(jq -r '.artifacts[] | select('"$FILTER"') | "\(.id) \(.version) \(.publishedOn)"' response.json | head -n 1)
+        MATCH=$(jq -r '.artifacts[] | select('"$FILTER"') | "\(.id) \(.version) \(.publishedOn) \(.name)"' response.json | head -n 1)
 
         if [ -z "$MATCH" ]; then
           echo "No matching artifact found with labels: $LABELS"
@@ -77,14 +78,15 @@ runs:
         ARTIFACT_ID=$(echo "$MATCH" | awk '{print $1}')
         VERSION=$(echo "$MATCH" | awk '{print $2}')
         TIMESTAMP=$(echo "$MATCH" | awk '{print $3}')
+        ARTIFACT_NAME=$(echo "$MATCH" | cut -d' ' -f4-)
 
         echo "Found latest artifact:"
         echo "   ID: $ARTIFACT_ID"
         echo "   Version: $VERSION"
         echo "   Timestamp: $TIMESTAMP"
+        echo "   Name: $ARTIFACT_NAME"
 
         echo "$ARTIFACT_ID" > "$CLOUDBEES_OUTPUTS/artifact_id"
         echo "$VERSION" > "$CLOUDBEES_OUTPUTS/version"
         echo "$TIMESTAMP" > "$CLOUDBEES_OUTPUTS/timestamp"
-
-        exit 0
+        echo "$ARTIFACT_NAME" > "$CLOUDBEES_OUTPUTS/artifact_name"
